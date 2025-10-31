@@ -2,6 +2,11 @@ import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 
 import { Event, EventForm } from '../types';
+import { generateRecurringEvents } from '../utils/eventUtils';
+
+interface SaveEventOptions {
+  editMode?: 'single' | 'series';
+}
 
 export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -21,15 +26,61 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
-  const saveEvent = async (eventData: Event | EventForm) => {
+  const saveEvent = async (eventData: Event | EventForm, options?: SaveEventOptions) => {
     try {
       let response;
-      if (editing) {
-        response = await fetch(`/api/events/${(eventData as Event).id}`, {
-          method: 'PUT',
+
+      // Check if this is a recurring event creation (not editing)
+      if (!editing && eventData.repeat && eventData.repeat.type !== 'none') {
+        // Generate recurring events
+        const recurringEvents = generateRecurringEvents(eventData as EventForm);
+
+        response = await fetch('/api/events-list', {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(eventData),
+          body: JSON.stringify({ events: recurringEvents }),
         });
+      } else if (editing) {
+        const event = eventData as Event;
+
+        // Check if editing a recurring event in series mode
+        if (options?.editMode === 'series' && event.repeat.id) {
+          response = await fetch(`/api/recurring-events/${event.repeat.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update event series');
+          }
+
+          await fetchEvents();
+          onSave?.();
+          enqueueSnackbar('일정이 수정되었습니다.', { variant: 'success' });
+          return;
+        } else if (options?.editMode === 'single') {
+          // Single edit mode: convert to non-recurring event
+          const singleEventData = {
+            ...eventData,
+            repeat: {
+              type: 'none' as const,
+              interval: 0,
+            },
+          };
+
+          response = await fetch(`/api/events/${event.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(singleEventData),
+          });
+        } else {
+          response = await fetch(`/api/events/${event.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData),
+          });
+        }
       } else {
         response = await fetch('/api/events', {
           method: 'POST',
@@ -49,7 +100,7 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       });
     } catch (error) {
       console.error('Error saving event:', error);
-      enqueueSnackbar('일정 저장 실패', { variant: 'error' });
+      enqueueSnackbar(editing ? '일정 수정 실패' : '일정 저장 실패', { variant: 'error' });
     }
   };
 
@@ -69,6 +120,22 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     }
   };
 
+  const deleteEventSeries = async (repeatId: string) => {
+    try {
+      const response = await fetch(`/api/recurring-events/${repeatId}`, { method: 'DELETE' });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete event series');
+      }
+
+      await fetchEvents();
+      enqueueSnackbar('일정이 삭제되었습니다.', { variant: 'info' });
+    } catch (error) {
+      console.error('Error deleting event series:', error);
+      enqueueSnackbar('일정 삭제 실패', { variant: 'error' });
+    }
+  };
+
   async function init() {
     await fetchEvents();
     enqueueSnackbar('일정 로딩 완료!', { variant: 'info' });
@@ -79,5 +146,5 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { events, fetchEvents, saveEvent, deleteEvent };
+  return { events, fetchEvents, saveEvent, deleteEvent, deleteEventSeries };
 };
