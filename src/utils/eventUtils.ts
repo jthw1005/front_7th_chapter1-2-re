@@ -124,6 +124,9 @@ export function generateRecurringEvents(eventForm: EventForm): Event[] {
       currentDate.setDate(1);
     } else if (eventForm.repeat.type === 'yearly') {
       currentDate.setFullYear(currentDate.getFullYear() + eventForm.repeat.interval);
+      // Reset to target month and day (important for Feb 29 edge case)
+      currentDate.setMonth(targetMonth);
+      currentDate.setDate(targetDay);
     }
   }
 

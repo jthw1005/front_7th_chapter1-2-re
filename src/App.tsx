@@ -82,8 +82,6 @@ function App() {
     setLocation,
     category,
     setCategory,
-    isRepeating,
-    setIsRepeating,
     repeatType,
     setRepeatType,
     repeatInterval,
@@ -123,7 +121,7 @@ function App() {
 
   // Form validation state
   const getRepeatEndDateError = (): string | null => {
-    if (!isRepeating || !repeatType || repeatType === 'none') {
+    if (!repeatType || repeatType === 'none') {
       return null;
     }
 
@@ -136,11 +134,11 @@ function App() {
     const startDate = new Date(date);
 
     if (endDate > maxDate) {
-      return '반복 종료일은 2025-12-31 이하여야 합니다';
+      return '반복 종료일은 2025년 12월 31일을 초과할 수 없습니다';
     }
 
     if (endDate <= startDate) {
-      return '반복 종료일은 시작일보다 이후여야 합니다';
+      return '반복 종료일은 시작일 이후여야 합니다';
     }
 
     return null;
@@ -231,7 +229,7 @@ function App() {
       location,
       category,
       repeat: {
-        type: isRepeating ? repeatType : 'none',
+        type: repeatType,
         interval: repeatInterval,
         endDate: repeatEndDate || undefined,
       },
@@ -522,18 +520,6 @@ function App() {
             </Select>
           </FormControl>
 
-          <FormControl>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={isRepeating}
-                  onChange={(e) => setIsRepeating(e.target.checked)}
-                />
-              }
-              label="반복 일정"
-            />
-          </FormControl>
-
           <FormControl fullWidth>
             <FormLabel htmlFor="notification">알림 설정</FormLabel>
             <Select
@@ -550,10 +536,9 @@ function App() {
             </Select>
           </FormControl>
 
-          {isRepeating && (
-            <Stack spacing={2}>
-              <FormControl fullWidth>
-                <FormLabel id="repeat-type-label">반복 유형</FormLabel>
+          <Stack spacing={2}>
+            <FormControl fullWidth>
+              <FormLabel id="repeat-type-label">반복 유형</FormLabel>
                 <Select
                   size="small"
                   value={repeatType}
@@ -603,7 +588,6 @@ function App() {
                 </FormControl>
               </Stack>
             </Stack>
-          )}
 
           <Button
             data-testid="event-submit-button"
@@ -751,7 +735,7 @@ function App() {
                 location,
                 category,
                 repeat: {
-                  type: isRepeating ? repeatType : 'none',
+                  type: repeatType,
                   interval: repeatInterval,
                   endDate: repeatEndDate || undefined,
                 },
