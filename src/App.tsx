@@ -440,8 +440,9 @@ function App() {
   return (
     <Box sx={{ width: '100%', height: '100vh', margin: 'auto', p: 5 }}>
       <Stack direction="row" spacing={6} sx={{ height: '100%' }}>
-        <Stack spacing={2} sx={{ width: '20%' }}>
-          <Typography variant="h4">{editingEvent ? '일정 수정' : '일정 추가'}</Typography>
+        {!recurringDialogOpen && (
+          <Stack spacing={2} sx={{ width: '20%' }}>
+            <Typography variant="h4">{editingEvent ? '일정 수정' : '일정 추가'}</Typography>
 
           <FormControl fullWidth>
             <FormLabel htmlFor="title">제목</FormLabel>
@@ -613,6 +614,7 @@ function App() {
             {editingEvent ? '일정 수정' : '일정 추가'}
           </Button>
         </Stack>
+        )}
 
         <Stack flex={1} spacing={5}>
           <Typography variant="h4">일정 보기</Typography>
