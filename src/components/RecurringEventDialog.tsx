@@ -26,7 +26,7 @@ export function RecurringEventDialog({
   const question = mode === 'edit' ? '해당 일정만 수정하시겠어요?' : '해당 일정만 삭제하시겠어요?';
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} TransitionProps={{ timeout: 0 }}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{question}</DialogContentText>
