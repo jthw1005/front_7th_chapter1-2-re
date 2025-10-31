@@ -119,6 +119,8 @@ function App() {
 
   const { enqueueSnackbar } = useSnackbar();
 
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+
   // Form validation state
   const getRepeatEndDateError = (): string | null => {
     if (!repeatType || repeatType === 'none') {
@@ -126,9 +128,11 @@ function App() {
     }
 
     if (!repeatEndDate) {
-      return '반복 종료일을 입력해주세요';
+      // Only show "required" error after submit attempt
+      return submitAttempted ? '반복 종료일을 입력해주세요' : null;
     }
 
+    // Show validation errors immediately when date is typed
     const maxDate = new Date('2025-12-31');
     const endDate = new Date(repeatEndDate);
     const startDate = new Date(date);
@@ -145,6 +149,8 @@ function App() {
   };
 
   const repeatEndDateError = getRepeatEndDateError();
+
+  // Button is disabled only for errors that are currently visible
   const isFormValid = !startTimeError && !endTimeError && !repeatEndDateError;
 
   const handleEditClick = (event: Event) => {
@@ -204,6 +210,8 @@ function App() {
   };
 
   const addOrUpdateEvent = async () => {
+    setSubmitAttempted(true);
+
     if (!title || !date || !startTime || !endTime) {
       enqueueSnackbar('필수 정보를 모두 입력해주세요.', { variant: 'error' });
       return;
@@ -211,6 +219,12 @@ function App() {
 
     if (startTimeError || endTimeError) {
       enqueueSnackbar('시간 설정을 확인해주세요.', { variant: 'error' });
+      return;
+    }
+
+    // Check repeat end date validation (including required check after submit attempt)
+    if (repeatType && repeatType !== 'none' && !repeatEndDate) {
+      enqueueSnackbar('반복 종료일을 입력해주세요.', { variant: 'error' });
       return;
     }
 
@@ -253,6 +267,7 @@ function App() {
         await saveEvent(eventData);
       }
       resetForm();
+      setSubmitAttempted(false);
     }
   };
 
@@ -594,6 +609,7 @@ function App() {
             onClick={addOrUpdateEvent}
             variant="contained"
             color="primary"
+            disabled={!isFormValid}
           >
             {editingEvent ? '일정 수정' : '일정 추가'}
           </Button>
