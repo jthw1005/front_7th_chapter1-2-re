@@ -594,7 +594,6 @@ function App() {
             onClick={addOrUpdateEvent}
             variant="contained"
             color="primary"
-            disabled={!isFormValid}
           >
             {editingEvent ? '일정 수정' : '일정 추가'}
           </Button>
