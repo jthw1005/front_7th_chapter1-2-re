@@ -12,14 +12,12 @@ import {
   AlertTitle,
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
   FormControl,
-  FormControlLabel,
   FormLabel,
   IconButton,
   MenuItem,
@@ -554,55 +552,56 @@ function App() {
           <Stack spacing={2}>
             <FormControl fullWidth>
               <FormLabel id="repeat-type-label">반복 유형</FormLabel>
-                <Select
+              <Select
+                id="repeat-type"
+                size="small"
+                value={repeatType}
+                onChange={(e) => setRepeatType(e.target.value as RepeatType)}
+                aria-labelledby="repeat-type-label"
+                aria-label="반복 유형"
+              >
+                <MenuItem value="none" aria-label="없음-option">
+                  반복 안함
+                </MenuItem>
+                <MenuItem value="daily" aria-label="매일-option">
+                  매일
+                </MenuItem>
+                <MenuItem value="weekly" aria-label="매주-option">
+                  매주
+                </MenuItem>
+                <MenuItem value="monthly" aria-label="매월-option">
+                  매월
+                </MenuItem>
+                <MenuItem value="yearly" aria-label="매년-option">
+                  매년
+                </MenuItem>
+              </Select>
+            </FormControl>
+            <Stack direction="row" spacing={2}>
+              <FormControl fullWidth>
+                <FormLabel>반복 간격</FormLabel>
+                <TextField
                   size="small"
-                  value={repeatType}
-                  onChange={(e) => setRepeatType(e.target.value as RepeatType)}
-                  aria-labelledby="repeat-type-label"
-                  aria-label="반복 유형"
-                >
-                  <MenuItem value="none" aria-label="없음-option">
-                    반복 안함
-                  </MenuItem>
-                  <MenuItem value="daily" aria-label="매일-option">
-                    매일
-                  </MenuItem>
-                  <MenuItem value="weekly" aria-label="매주-option">
-                    매주
-                  </MenuItem>
-                  <MenuItem value="monthly" aria-label="매월-option">
-                    매월
-                  </MenuItem>
-                  <MenuItem value="yearly" aria-label="매년-option">
-                    매년
-                  </MenuItem>
-                </Select>
+                  type="number"
+                  value={repeatInterval}
+                  onChange={(e) => setRepeatInterval(Number(e.target.value))}
+                  slotProps={{ htmlInput: { min: 1 } }}
+                />
               </FormControl>
-              <Stack direction="row" spacing={2}>
-                <FormControl fullWidth>
-                  <FormLabel>반복 간격</FormLabel>
-                  <TextField
-                    size="small"
-                    type="number"
-                    value={repeatInterval}
-                    onChange={(e) => setRepeatInterval(Number(e.target.value))}
-                    slotProps={{ htmlInput: { min: 1 } }}
-                  />
-                </FormControl>
-                <FormControl fullWidth>
-                  <FormLabel htmlFor="repeat-end-date">반복 종료일</FormLabel>
-                  <TextField
-                    id="repeat-end-date"
-                    size="small"
-                    type="date"
-                    value={repeatEndDate}
-                    onChange={(e) => setRepeatEndDate(e.target.value)}
-                    error={!!repeatEndDateError}
-                    helperText={repeatEndDateError}
-                  />
-                </FormControl>
-              </Stack>
+              <FormControl fullWidth>
+                <FormLabel htmlFor="repeat-end-date">반복 종료일</FormLabel>
+                <TextField
+                  id="repeat-end-date"
+                  size="small"
+                  type="date"
+                  value={repeatEndDate}
+                  onChange={(e) => setRepeatEndDate(e.target.value)}
+                  error={!!repeatEndDateError}
+                  helperText={repeatEndDateError}
+                />
+              </FormControl>
             </Stack>
+          </Stack>
 
           <Button
             data-testid="event-submit-button"

@@ -90,6 +90,10 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       }
 
       if (!response.ok) {
+        // For 404 errors on update, treat as save failure
+        if (editing && response.status === 404) {
+          throw new Error('Event not found');
+        }
         throw new Error('Failed to save event');
       }
 
@@ -100,7 +104,13 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
       });
     } catch (error) {
       console.error('Error saving event:', error);
-      enqueueSnackbar(editing ? '일정 수정 실패' : '일정 저장 실패', { variant: 'error' });
+      // Check if error message indicates a series update failure or event not found
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage === 'Failed to update event series') {
+        enqueueSnackbar('일정 수정 실패', { variant: 'error' });
+      } else {
+        enqueueSnackbar('일정 저장 실패', { variant: 'error' });
+      }
     }
   };
 
