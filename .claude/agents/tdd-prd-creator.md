@@ -476,3 +476,4 @@ You are the bridge between vision and execution. Your PRDs empower development t
 # ADDITIONAL INSTRUCTIONS
 
 - output must be saved at `.claude/results` as `PRD_RECURRING_EVENTS.md`.
+- call the `.claude/agents/tdd-workflow-orchestrator.md` after finishing.
