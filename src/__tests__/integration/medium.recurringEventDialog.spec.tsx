@@ -273,10 +273,14 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
       await user.click(screen.getByRole('button', { name: '취소' }));
 
       // 다이얼로그가 닫힘
-      expect(screen.queryByText('반복 일정 수정')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByText('반복 일정 수정')).not.toBeInTheDocument();
+      });
 
-      // 수정 폼이 열리지 않음
-      expect(screen.queryByLabelText('제목')).not.toBeInTheDocument();
+      // 수정 폼은 다시 나타나지만 편집 상태가 아님 (제목이 일정 추가로 표시됨)
+      expect(screen.getByRole('heading', { name: '일정 추가' })).toBeInTheDocument();
+      expect(screen.getByLabelText('제목')).toBeInTheDocument();
+      expect(screen.getByLabelText('제목')).toHaveValue(''); // 빈 값
 
       // 캘린더 뷰가 그대로 유지됨
       expect(screen.getByTestId('month-view')).toBeInTheDocument();
@@ -323,6 +327,11 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
     it('"예" 버튼을 클릭하면 해당 일정만 삭제된다', async () => {
       const remainingEvents = mockRecurringEvents.filter((e) => e.id !== '3');
 
+      const { user } = setup(<App />);
+
+      await screen.findByText('일정 로딩 완료!');
+
+      // Set up handlers after app has loaded with all 5 events
       server.use(
         http.delete('/api/events/:id', ({ params }) => {
           const { id } = params;
@@ -333,10 +342,6 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
           return HttpResponse.json({ events: remainingEvents });
         })
       );
-
-      const { user } = setup(<App />);
-
-      await screen.findByText('일정 로딩 완료!');
 
       const deleteButtons = await screen.findAllByLabelText('Delete event');
       await user.click(deleteButtons[2]); // 3번째 일정 (id: '3')
@@ -357,6 +362,11 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
 
   describe('TC-024: 삭제 다이얼로그 "아니오" 버튼 - 시리즈 전체 삭제', () => {
     it('"아니오" 버튼을 클릭하면 시리즈 전체가 삭제된다', async () => {
+      const { user } = setup(<App />);
+
+      await screen.findByText('일정 로딩 완료!');
+
+      // Set up handlers after app has loaded
       server.use(
         http.delete('/api/recurring-events/:repeatId', ({ params }) => {
           const { repeatId } = params;
@@ -367,10 +377,6 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
           return HttpResponse.json({ events: [] });
         })
       );
-
-      const { user } = setup(<App />);
-
-      await screen.findByText('일정 로딩 완료!');
 
       const deleteButtons = await screen.findAllByLabelText('Delete event');
       await user.click(deleteButtons[0]);
@@ -390,6 +396,11 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
     it('DELETE /api/recurring-events/:repeatId 엔드포인트를 호출한다', async () => {
       let deleteCalled = false;
 
+      const { user } = setup(<App />);
+
+      await screen.findByText('일정 로딩 완료!');
+
+      // Set up handlers after app has loaded
       server.use(
         http.delete('/api/recurring-events/:repeatId', ({ params }) => {
           deleteCalled = true;
@@ -400,10 +411,6 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
           return HttpResponse.json({ events: [] });
         })
       );
-
-      const { user } = setup(<App />);
-
-      await screen.findByText('일정 로딩 완료!');
 
       const deleteButtons = await screen.findAllByLabelText('Delete event');
       await user.click(deleteButtons[0]);
@@ -688,15 +695,14 @@ describe('TC-018 ~ TC-024: 반복 일정 수정/삭제 다이얼로그', () => {
 
       await user.type(screen.getByLabelText('반복 종료일'), '2025-01-05');
 
-      await user.click(screen.getByTestId('event-submit-button'));
-
-      // API가 호출되지 않음
-      await waitFor(() => {
-        expect(apiCalled).toBe(false);
-      });
-
       // 시간 검증 에러 표시
       expect(screen.getByText(/종료 시간은 시작 시간보다 늦어야 합니다/)).toBeInTheDocument();
+
+      // 제출 버튼이 비활성화됨
+      expect(screen.getByTestId('event-submit-button')).toBeDisabled();
+
+      // API가 호출되지 않음 (버튼이 비활성화되어 클릭할 수 없으므로)
+      expect(apiCalled).toBe(false);
     });
   });
 });

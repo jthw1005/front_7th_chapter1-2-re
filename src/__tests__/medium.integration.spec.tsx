@@ -557,16 +557,18 @@ describe('TC-037: 반복 일정은 겹침 감지 제외', () => {
 
     const { user } = setup(<App />);
 
-    // 겹치는 시간에 새로운 반복 일정 추가
-    await saveSchedule(user, {
-      title: '새 반복 회의',
-      date: '2025-10-15',
-      startTime: '09:30',
-      endTime: '10:30',
-      description: '겹치는 반복 일정',
-      location: '회의실 B',
-      category: '업무',
-    });
+    // Fill form without submitting yet - need to add repeat settings before submitting
+    await user.click(screen.getAllByText('일정 추가')[0]);
+
+    await user.type(screen.getByLabelText('제목'), '새 반복 회의');
+    await user.type(screen.getByLabelText('날짜'), '2025-10-15');
+    await user.type(screen.getByLabelText('시작 시간'), '09:30');
+    await user.type(screen.getByLabelText('종료 시간'), '10:30');
+    await user.type(screen.getByLabelText('설명'), '겹치는 반복 일정');
+    await user.type(screen.getByLabelText('위치'), '회의실 B');
+    await user.click(screen.getByLabelText('카테고리'));
+    await user.click(within(screen.getByLabelText('카테고리')).getByRole('combobox'));
+    await user.click(screen.getByRole('option', { name: '업무-option' }));
 
     // 반복 유형 설정
     await user.click(screen.getByLabelText('반복 유형'));
@@ -574,6 +576,7 @@ describe('TC-037: 반복 일정은 겹침 감지 제외', () => {
     await user.click(screen.getByRole('option', { name: '매일-option' }));
     await user.type(screen.getByLabelText('반복 종료일'), '2025-10-20');
 
+    // Now submit the form
     await user.click(screen.getByTestId('event-submit-button'));
 
     // 겹침 경고 없음
