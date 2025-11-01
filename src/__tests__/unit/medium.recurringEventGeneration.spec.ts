@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { Event, EventForm } from '../../types';
+import { EventForm } from '../../types';
 import { generateRecurringEvents } from '../../utils/eventUtils';
 
 describe('generateRecurringEvents', () => {
